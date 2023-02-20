@@ -8,6 +8,8 @@ jobs:
   EchoTest:
     runs-on: ubuntu-latest
     steps:
+        - env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         - name: echoTest
-          run: echo Hello World
-        
+          run: echo Hello World $ISSUE_URL
