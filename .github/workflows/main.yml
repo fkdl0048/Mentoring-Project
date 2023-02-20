@@ -8,24 +8,18 @@ jobs:
   update-readme:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Update Readme
-      uses: peter-evans/readme-pattern@v1.1.0
+    - name: Get latest answered discussion
+      id: latest_discussion
+      uses: peter-evans/github-actions@v3
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        pattern: '## Latest Discussion(.*)'
-        file: 'README.md'
-        content: |
-          ## Latest Discussion
-          ${{ github.event_name }} by ${{ github.actor }} at ${{ github.event.head_commit.timestamp }}
-
-          ${{ github.event.head_commit.message }}
-
-          Discussion: ${{ github.event.repository.html_url }}/discussions/${{ github.event.discussion_number }}
-    - name: Commit and Push changes
+        http_method: GET
+        url: https://api.github.com/repos/$GITHUB_REPOSITORY/discussions?q=answered&per_page=1
+        headers: |
+          Accept: application/vnd.github.v3+json
+          Authorization: ${{ secrets.TOKEN }}
+    - name: Update README with Latest Answered Discussion
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add README.md
-        git commit -m "Update README with Latest Discussion"
-        git push
+        question=$(echo ${{ steps.latest_discussion.outputs.data }} | jq -r '.[0].title')
+        answer=$(echo ${{ steps.latest_discussion.outputs.data }} | jq -r '.[0].body')
+        discussion_url=$(echo ${{ steps.latest_discussion.outputs.data }} | jq -r '.[0].html_url')
+        echo -e "\n\n## Latest Answered Discussion\n\n### ${question}\n\n${answer}\n\nDiscussion: ${discussion_url}" >> README.md
