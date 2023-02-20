@@ -1,0 +1,13 @@
+name: DiscussionTest
+
+on:
+  discussion:
+    types: [answered]
+    
+jobs:
+  EchoTest:
+    runs-on: ubuntu-latest
+    steps:
+        - name: echoTest
+          run: echo Hello World
+        
